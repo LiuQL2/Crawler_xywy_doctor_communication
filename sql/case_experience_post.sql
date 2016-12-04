@@ -1,0 +1,38 @@
+/*
+Navicat MySQL Data Transfer
+
+Source Server         : Qianlong
+Source Server Version : 50716
+Source Host           : localhost:3306
+Source Database       : xywy_communication
+
+Target Server Type    : MYSQL
+Target Server Version : 50716
+File Encoding         : 65001
+
+Date: 2016-12-04 23:03:06
+*/
+
+SET FOREIGN_KEY_CHECKS=0;
+
+-- ----------------------------
+-- Table structure for case_experience_post
+-- ----------------------------
+DROP TABLE IF EXISTS `case_experience_post`;
+CREATE TABLE `case_experience_post` (
+  `post_url` varchar(255) COLLATE utf8_bin NOT NULL COMMENT '话题的主页链接',
+  `post_title` text COLLATE utf8_bin,
+  `post_review_number` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '话题浏览人数',
+  `post_time` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '话题发表时间',
+  `post_content` longtext COLLATE utf8_bin COMMENT '帖子正文',
+  `post_like_number` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '点赞人数',
+  `post_comment_number` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '评论人数',
+  `post_like_doctor_url` text COLLATE utf8_bin COMMENT '点赞医生的链接，不确保全部',
+  `post_comment_doctor_url` text COLLATE utf8_bin COMMENT '评论医生的链接',
+  `post_doctor_url` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '发帖医生链接',
+  `post_doctor_dynamic` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '发帖医生动态数',
+  `post_doctor_fans` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '发帖医生粉丝数',
+  `post_type` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '帖子类别',
+  `crawl_time` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '抓取时间',
+  PRIMARY KEY (`post_url`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

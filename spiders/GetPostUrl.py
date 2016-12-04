@@ -15,13 +15,13 @@ import urllib2
 from urllib2 import URLError
 import lxml.etree
 from settings import USER_AGENTS as user_agents
-
+import threading
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
 class GetPostUrl(object):
-    def __init__(self,file_path, case_experience_name, help_topic_name):
+    def __init__(self,file_path, case_experience_name, help_topic_name,run_type = None):
         """
         初始化一个实例，用来获取病例和心得下面的所有帖子的链接。
         :param post_url_path: 需要将帖子链接保存到的文件名及路径。
@@ -29,6 +29,9 @@ class GetPostUrl(object):
         self.file_path = file_path
         self.case_experience_name =case_experience_name
         self.help_topic_name = help_topic_name
+        self.run_type = run_type
+
+
 
         self.case_experience_start_urls = [
             'http://club.xywy.com/doctorShare/index/2',
@@ -38,10 +41,18 @@ class GetPostUrl(object):
             'http://club.xywy.com/doctorShare/index/4',
             'http://club.xywy.com/doctorShare/index/5',
                         ]
-        self.case_experience_page_urls = self.__get_page_url(start_url_list=self.case_experience_start_urls)
-        self.help_topic_page_urls = self.__get_page_url(start_url_list=self.help_topic_start_urls)
+        self.case_experience_page_urls = self.__get_page_url__(start_url_list=self.case_experience_start_urls)
+        self.help_topic_page_urls = self.__get_page_url__(start_url_list=self.help_topic_start_urls)
 
-    def __get_page_url(self, start_url_list):
+    def run(self):
+        if self.run_type == 'help_topic':
+            self.get_help_topic_post_url()
+        elif self.run_type == 'case_experience':
+            self.get_case_experience_post_url()
+        else:
+            print 'please given the run type : "help_topic" or "case_experience"!'
+
+    def __get_page_url__(self, start_url_list):
         page_url_list = []
         for start_url in start_url_list:
             request = urllib2.Request(url = start_url, headers= self.get_header())
@@ -60,13 +71,20 @@ class GetPostUrl(object):
         """
         file = open(self.file_path + self.case_experience_name, 'wb')
         file_writer = csv.writer(file)
-        for page_url in self.case_experience_page_urls:
-            request = urllib2.Request(url=page_url, headers=self.get_header())
-            sel = self.process_request(request=request)
-            post_url_list = sel.xpath('//div[@class="tab_Con pr"]/div[2]/div[1]/a/@href')
-            print len(post_url_list), page_url
-            for post_url in post_url_list:
-                file_writer.writerow([post_url,page_url])
+        page_url_list = self.case_experience_page_urls
+        while len(page_url_list) != 0:
+            error_case_experience_page_url_list = []
+            for page_url in page_url_list:
+                request = urllib2.Request(url=page_url, headers=self.get_header())
+                sel = self.process_request(request=request)
+                if sel != None:
+                    post_url_list = sel.xpath('//div[@class="tab_Con pr"]/div[2]/div[1]/a/@href')
+                    print len(post_url_list), page_url
+                    for post_url in post_url_list:
+                        file_writer.writerow([post_url,page_url])
+                else:
+                    error_case_experience_page_url_list.append(page_url)
+            page_url_list = error_case_experience_page_url_list
         file.close()
 
     def get_help_topic_post_url(self):
@@ -76,14 +94,20 @@ class GetPostUrl(object):
         """
         file = open(self.file_path + self.help_topic_name, 'wb')
         file_writer = csv.writer(file)
-        for page_url in self.help_topic_page_urls:
-            request = urllib2.Request(url=page_url, headers=self.get_header())
-            sel = self.process_request(request=request)
-            post_url_list = sel.xpath('//div[@class="tab_Con pr"]/div[2]/div[1]/a/@href')
-            print len(post_url_list), page_url
-            for post_url in post_url_list:
-                print post_url,page_url
-                file_writer.writerow([post_url, page_url])
+        page_url_list = self.help_topic_page_urls
+        while len(page_url_list) != 0:
+            error_help_topic_page_url_list = []
+            for page_url in self.help_topic_page_urls:
+                request = urllib2.Request(url=page_url, headers=self.get_header())
+                sel = self.process_request(request=request)
+                if sel != None:
+                    post_url_list = sel.xpath('//div[@class="tab_Con pr"]/div[2]/div[1]/a/@href')
+                    print len(post_url_list), page_url
+                    for post_url in post_url_list:
+                        file_writer.writerow([post_url, page_url])
+                else:
+                    error_help_topic_page_url_list.append(page_url)
+            page_url_list = error_help_topic_page_url_list
         file.close()
 
     def get_header(self):
@@ -100,8 +124,9 @@ class GetPostUrl(object):
         :return:返回一个可以用xpath解析的selector格式。
         """
         try:
-            response = urllib2.urlopen(request)
+            response = urllib2.urlopen(request,timeout=100)
             doc = response.read()
+            # print '****',request.get_full_url()
             response.close()
             doc = doc.decode('GBK', 'ignore')
             # doc = doc.encode('utf-8')
@@ -115,15 +140,18 @@ class GetPostUrl(object):
                 print  'The server could not fulfill the request.'
                 print  'Error code: ', e.code
                 print  'Reason: ', e.reason
+            return None
+
+
+
 
 
 if __name__ == '__main__':
-
-    file_path = 'D:\Qianlong\PyCharmProjects\Crawler\data\\'
+    file_path = 'D:/Qianlong/PyCharmProjects/Crawler_xywy_doctor_communication/data/'
     case_experience_post_url_file = 'case_experience_url.csv'
-    case_experience_post_url_file_got = 'case_experience_url_got.csv'
     help_topic_post_url_file = 'help_topic_url.csv'
-    help_topic_post_url_file_got = 'help_topic_url_got.csv'
     spider = GetPostUrl(file_path=file_path,case_experience_name=case_experience_post_url_file,help_topic_name=help_topic_post_url_file)
     spider.get_case_experience_post_url()
-    # spider.get_help_topic_post_url()
+    spider.get_help_topic_post_url()
+
+
