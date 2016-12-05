@@ -125,12 +125,14 @@ class GetPostUrl(object):
         """
         try:
             response = urllib2.urlopen(request,timeout=100)
-            doc = response.read()
-            # print '****',request.get_full_url()
-            response.close()
-            doc = doc.decode('GBK', 'ignore')
-            # doc = doc.encode('utf-8')
-            doc = lxml.etree.HTML(doc)
+            try:
+                doc = response.read()
+                response.close()
+                doc = doc.decode('GBK', 'ignore')
+                doc = lxml.etree.HTML(doc)
+            except:
+                doc = None
+                print 'return doc:None'
             return doc
         except URLError, e:
             if hasattr(e, 'reason'):

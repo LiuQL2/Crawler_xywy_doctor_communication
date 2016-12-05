@@ -48,11 +48,18 @@ class CaseSpider(object):
         用来抓取帖子信息的方法，分为两部分：帖子的信息post，和评论信息：comment。其中评论信息分为一级和二级评论，两部分都是通过调用函数完成
         :return:以字典的形式返回数据。其中post是字典，comment_list是一个包含多个字典的list。
         """
-        post = self.__get_post_info__()
-        comment_list = self.__get_comment__()
+        if self.status == True:
+            post = self.__get_post_info__()
+        else:
+            post = None
         print post
-        for comment in comment_list:
-            print comment['comment_second_list']
+        if self.status == True:
+            comment_list = self.__get_comment__()
+            for comment in comment_list:
+                print comment['comment_second_list']
+        else:
+            comment_list = None
+
         if self.status == True:
             return {'post':post, 'comment_list':comment_list}
         else:
@@ -263,11 +270,17 @@ class CaseSpider(object):
         """
         try:
             response = urllib2.urlopen(request,timeout=100)
-            doc = response.read()
-            response.close()
-            doc = doc.decode('GBK', 'ignore')
-            doc = lxml.etree.HTML(doc)
+            try:
+                doc = response.read()
+                response.close()
+                doc = doc.decode('GBK', 'ignore')
+                doc = lxml.etree.HTML(doc)
+            except:
+                doc = None
+                print 'return doc:None'
             return doc
+        # except request.exceptions.Timeout:
+        #     return None
         except URLError, e:
             if hasattr(e, 'reason'):
                 print  'We failed to raach a server.'
