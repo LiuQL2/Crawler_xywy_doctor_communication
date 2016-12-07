@@ -81,4 +81,8 @@ class HelpSpider(CaseSpider):
 # help = HelpSpider('http://club.xywy.com/doctorShare/detail/52771')
 # help.__get_post_info__()
 # print help.__get_comment__()
+if __name__ == '__main__':
+    help = HelpSpider(url = 'http://club.xywy.com/doctorShare/detail/53693')
+    post = help.parse()
+    print post
 
