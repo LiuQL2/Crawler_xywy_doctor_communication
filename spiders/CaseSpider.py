@@ -11,6 +11,7 @@ import datetime
 import math
 import random
 import re
+import socket
 import sys
 import urllib2
 from urllib2 import URLError
@@ -55,8 +56,11 @@ class CaseSpider(object):
         print post
         if self.status == True:
             comment_list = self.__get_comment__()
-            for comment in comment_list:
-                print comment['comment_second_list']
+            if comment_list == None:
+                pass
+            else:
+                for comment in comment_list:
+                    print comment['comment_second_list']
         else:
             comment_list = None
 
@@ -289,6 +293,13 @@ class CaseSpider(object):
                 print  'The server could not fulfill the request.'
                 print  'Error code: ', e.code
                 print  'Reason: ', e.reason
+            return None
+        except socket.timeout,e:
+            # raise MyException('There was an error: %r' % e)
+            print 'Error code: socket timeout ', e
+            return None
+        except:
+            print 'Do Not know what is wrong.'
             return None
 
 

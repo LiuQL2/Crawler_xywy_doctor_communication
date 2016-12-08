@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from spiders.GetPostUrl import GetPostUrlThread
+from spiders.GetPostUrl import GetPostUrl
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
