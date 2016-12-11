@@ -14,6 +14,14 @@ import csv
 def get_help_topic(data_path, url_file, error_url_file, date_time,post_table_name, comment_first_table_name,
                    comment_second_table_name,doctor_table_name,doctor_url_split,afresh_post_url_file = True):
 
+    while True:
+        crawl_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if date_time in crawl_time:
+            break
+        else:
+            time.sleep(1)
+            print 'waiting',crawl_time
+            pass
 
     file_path = data_path
     help_topic_post_url_file = url_file
@@ -24,15 +32,6 @@ def get_help_topic(data_path, url_file, error_url_file, date_time,post_table_nam
         help_topic.get_help_topic_post_url()
     else:
         pass
-
-    while True:
-        crawl_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        if date_time in crawl_time:
-            break
-        else:
-            time.sleep(1)
-            print 'waiting',crawl_time
-            pass
 
     file = open(file_path + help_topic_post_url_file,'r')
     reader = csv.reader(file)
@@ -57,7 +56,7 @@ def get_help_topic(data_path, url_file, error_url_file, date_time,post_table_nam
                 print '***第', str(index),'个一级评论已入库'
                 index = index + 1
                 for comment_second in comment['comment_second_list']:
-                    parent_comment_list = (mysql.select(table='help_topic_comment_first', record=comment['comment_first']))
+                    parent_comment_list = (mysql.select(table=comment_first_table_name, record=comment['comment_first']))
                     if len(parent_comment_list) == 0:
                         print 'Error, not foud parent comment for:', comment_second
                         pass
@@ -104,13 +103,13 @@ if __name__ == '__main__':
     file_path = 'D:/Qianlong/PyCharmProjects/Crawler_xywy_doctor_communication/data/'
     help_topic_post_url_file = 'help_topic_url.csv'
     help_topic_post_url_error_file = 'help_topic_url_error.csv'
-    date_time = '2016-12-09'
+    date_time = '2016-12-10'
     post_table_name = 'help_topic_post'
     comment_first_table_name = 'help_topic_comment_first'
     comment_second_table_name = 'help_topic_comment_second'
     doctor_table_name = 'doctor'
     doctor_url_split = '#####'
-    afresh_post_url_file = False
+    afresh_post_url_file = True
     get_help_topic(data_path=file_path,
                    url_file=help_topic_post_url_file,
                    error_url_file=help_topic_post_url_error_file,

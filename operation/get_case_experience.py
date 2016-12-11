@@ -13,15 +13,6 @@ import csv
 
 def get_help_topic(data_path, url_file, error_url_file, date_time,post_table_name, comment_first_table_name,
                    comment_second_table_name,doctor_table_name,doctor_url_split,afresh_post_url_file = True):
-    file_path = data_path
-    help_topic_post_url_file = url_file
-    help_topic_post_url_error_file = error_url_file
-    start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    if afresh_post_url_file == True:
-        help_topic = GetPostUrl(file_path=file_path,case_experience_name=help_topic_post_url_file,help_topic_name=help_topic_post_url_file)
-        help_topic.get_help_topic_post_url()
-    else:
-        pass
 
     while True:
         crawl_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -31,6 +22,16 @@ def get_help_topic(data_path, url_file, error_url_file, date_time,post_table_nam
             time.sleep(1)
             print 'waiting',crawl_time
             pass
+
+    file_path = data_path
+    help_topic_post_url_file = url_file
+    help_topic_post_url_error_file = error_url_file
+    start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if afresh_post_url_file == True:
+        help_topic = GetPostUrl(file_path=file_path,case_experience_name=help_topic_post_url_file,help_topic_name=help_topic_post_url_file)
+        help_topic.get_case_experience_post_url()
+    else:
+        pass
 
     file = open(file_path + help_topic_post_url_file,'r')
     reader = csv.reader(file)
@@ -55,7 +56,7 @@ def get_help_topic(data_path, url_file, error_url_file, date_time,post_table_nam
                 print '***第', str(index),'个一级评论已入库'
                 index = index + 1
                 for comment_second in comment['comment_second_list']:
-                    parent_comment_list = (mysql.select(table='help_topic_comment_first', record=comment['comment_first']))
+                    parent_comment_list = (mysql.select(table=comment_first_table_name, record=comment['comment_first']))
                     if len(parent_comment_list) == 0:
                         print 'Error, not foud parent comment for:', comment_second
                         pass
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     file_path = 'D:/Qianlong/PyCharmProjects/Crawler_xywy_doctor_communication/data/'
     url_file = 'case_experience_url.csv'
     error_url_file = 'case_experience_url_error.csv'
-    date_time = '2016-12-09'
+    date_time = '2016-12-11'
     post_table_name = 'case_experience_post'
     comment_first_table_name = 'case_experience_comment_first'
     comment_second_table_name = 'case_experience_comment_second'

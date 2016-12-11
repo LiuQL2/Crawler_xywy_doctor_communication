@@ -74,40 +74,42 @@ class CaseSpider(object):
         用来获取post信息的帖子，包含各种信息
         :return: 以字典的形式返回该post的主要信息。
         """
-        post = {}
-        post['post_url'] = self.target_url
-        post['post_title'] = self.selector.xpath('//h2[@class="pr fl w540 "]/text()')[0]
-        mode = re.compile(r'\d+')
-        post['post_review_number'] = mode.findall(self.selector.xpath('//div[@class="pulished_Left fl"]//span[@class="roat_tab fl"]/text()')[0])[0]
-        post['post_time'] = self.selector.xpath('//div[@class="pulished_Left fl"]//span[@class="roat_tab fl"]/em/text()')[0]
-        post_content = self.selector.xpath('//div[@class="duan_Luo pt10"]')
-        post['post_content'] = post_content[0].xpath('string(.)')
-        post['post_like_number'] = self.selector.xpath('//div[@class="function_Gn cb"]/div[2]/a[2]/span/text()')[0]
-        post['post_like_doctor_url'] = self.__get_like_doctor_url__()
+        try:
+            post = {}
+            post['post_url'] = self.target_url
+            post['post_title'] = self.selector.xpath('//h2[@class="pr fl w540 "]/text()')[0]
+            mode = re.compile(r'\d+')
+            post['post_review_number'] = mode.findall(self.selector.xpath('//div[@class="pulished_Left fl"]//span[@class="roat_tab fl"]/text()')[0])[0]
+            post['post_time'] = self.selector.xpath('//div[@class="pulished_Left fl"]//span[@class="roat_tab fl"]/em/text()')[0]
+            post_content = self.selector.xpath('//div[@class="duan_Luo pt10"]')
+            post['post_content'] = post_content[0].xpath('string(.)')
+            post['post_like_number'] = self.selector.xpath('//div[@class="function_Gn cb"]/div[2]/a[2]/span/text()')[0]
+            post['post_like_doctor_url'] = self.__get_like_doctor_url__()
 
-        #以下获取评论的部分信息
-        comment = self.__get_comment_doctor__()
-        if comment != None:
-            post['post_comment_doctor_url'] = comment['comment_doctor_url']
-            post['post_comment_number'] = comment['comment_number']
+            #以下获取评论的部分信息
+            comment = self.__get_comment_doctor__()
+            if comment != None:
+                post['post_comment_doctor_url'] = comment['comment_doctor_url']
+                post['post_comment_number'] = comment['comment_number']
+                post_doctor_url = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/a/@href')
+                #以下获取发帖人的信息，因为有些不是医生发帖，所以这里就要分情况讨论。
+                if len(post_doctor_url) == 0:
+                    post['post_doctor_url'] = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/text()[1]')[0].replace(' ', '')
+                else:
+                    post['post_doctor_url'] = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/a/@href')[0]
+                dynamic_fans = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/p/span/em/text()')
+                post['post_doctor_dynamic'] = dynamic_fans[0]
+                post['post_doctor_fans'] = dynamic_fans[1]
 
-            post_doctor_url = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/a/@href')
+                post['post_type'] = self.selector.xpath('//div[@class="pulished2 w1000 bc clearfix f12 fgray"]/a[2]/text()')[0]
+                # post['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                post['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d')
 
-            #以下获取发帖人的信息，因为有些不是医生发帖，所以这里就要分情况讨论。
-            if len(post_doctor_url) == 0:
-                post['post_doctor_url'] = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/text()[1]')[0].replace(' ', '')
+                return post
             else:
-                post['post_doctor_url'] = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/a/@href')[0]
-            dynamic_fans = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/p/span/em/text()')
-            post['post_doctor_dynamic'] = dynamic_fans[0]
-            post['post_doctor_fans'] = dynamic_fans[1]
-
-            post['post_type'] = self.selector.xpath('//div[@class="pulished2 w1000 bc clearfix f12 fgray"]/a[2]/text()')[0]
-            # post['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            post['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d')
-
-            return post
-        else:
+                return None
+        except:
+            self.status = False
             return None
 
 
@@ -118,12 +120,16 @@ class CaseSpider(object):
         :return:返回一个字符串，用分割符分割的点赞医生链接。
         """
         if self.selector != None:
-            doctor_url_list = self.selector.xpath('//div[@class="fl approve_con approve_con_short"]/span/a/@href')
-            temp = ''
-            separator = '#####'
-            for url in doctor_url_list:
-                temp = temp + url + separator
-            return temp[0:len(temp) - len(separator)]
+            try:
+                doctor_url_list = self.selector.xpath('//div[@class="fl approve_con approve_con_short"]/span/a/@href')
+                temp = ''
+                separator = '#####'
+                for url in doctor_url_list:
+                    temp = temp + url + separator
+                return temp[0:len(temp) - len(separator)]
+            except:
+                self.status = False
+                return None
         else:
             return None
 
