@@ -11,38 +11,31 @@ import datetime
 import math
 import random
 import re
-import socket
 import sys
 import urllib2
 from urllib2 import URLError
-
-import lxml.etree
-
-from settings import USER_AGENTS as user_agents
+from BaseSpider import BaseSpider
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-class CaseSpider(object):
-    def __init__(self, url,try_number = 20):
+class CaseSpider(BaseSpider):
+    def __init__(self, url, crawl_number, try_number=20, timeout=100):
         """
         实例的初始化，传入一个URL之后完成request，并构建selector
         :param url:需要抓取的一个帖子的链接
         """
         self.target_url = url
-        request = urllib2.Request(url=self.target_url, headers=self.get_header())
         self.status = True
         self.try_number = try_number
-        self.selector = None
-        index = 0
-        while self.selector == None:
-            index = index + 1
-            self.selector = self.process_request(request=request)
-            if index > self.try_number:
-                self.status = False
-                break
-
+        self.crawl_number = crawl_number
+        self.timeout = timeout
+        self.selector = self.process_url_request(url=self.target_url, try_number=self.try_number, xpath_type=True,wether_decode=True,encode_type='GBK')
+        if self.selector == None:
+            self.status = False
+        else:
+            pass
 
     def parse(self):
         """
@@ -56,14 +49,8 @@ class CaseSpider(object):
         print post
         if self.status == True:
             comment_list = self.__get_comment__()
-            if comment_list == None:
-                pass
-            else:
-                for comment in comment_list:
-                    print comment['comment_second_list']
         else:
             comment_list = None
-
         if self.status == True:
             return {'post':post, 'comment_list':comment_list}
         else:
@@ -76,6 +63,7 @@ class CaseSpider(object):
         """
         try:
             post = {}
+            post['crawl_number'] = self.crawl_number
             post['post_url'] = self.target_url
             post['post_title'] = self.selector.xpath('//h2[@class="pr fl w540 "]/text()')[0]
             mode = re.compile(r'\d+')
@@ -94,13 +82,12 @@ class CaseSpider(object):
                 post_doctor_url = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/a/@href')
                 #以下获取发帖人的信息，因为有些不是医生发帖，所以这里就要分情况讨论。
                 if len(post_doctor_url) == 0:
-                    post['post_doctor_url'] = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/text()[1]')[0].replace(' ', '')
+                    post['post_doctor_url'] = (self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/text()[1]')[0].replace(' ', '')).replace('/blog', '')
                 else:
-                    post['post_doctor_url'] = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/a/@href')[0]
+                    post['post_doctor_url'] = (self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/a/@href')[0]).replace('/blog', '')
                 dynamic_fans = self.selector.xpath('//div[@class="doc_Toux clearfix"]/div[@class="fl ml15"]/p/span/em/text()')
                 post['post_doctor_dynamic'] = dynamic_fans[0]
                 post['post_doctor_fans'] = dynamic_fans[1]
-
                 post['post_type'] = self.selector.xpath('//div[@class="pulished2 w1000 bc clearfix f12 fgray"]/a[2]/text()')[0]
                 # post['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 post['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -125,8 +112,8 @@ class CaseSpider(object):
                 temp = ''
                 separator = '#####'
                 for url in doctor_url_list:
-                    temp = temp + url + separator
-                return temp[0:len(temp) - len(separator)]
+                    temp = temp + url.replace('/blog', '') + separator
+                return temp[0:len(temp)]
             except:
                 self.status = False
                 return None
@@ -140,33 +127,30 @@ class CaseSpider(object):
         """
         comment_page_number = self.__get_comment_page_url__()
         comment_url = comment_page_number['comment_page_url']
-        request = urllib2.Request(url = comment_url, headers=self.get_header())
-        comment_selector = None
-        try_index = 0
-        while comment_selector == None:
-            try_index = try_index + 1
-            comment_selector = self.process_request(request=request)
-            if try_index > self.try_number:
-                self.status = False
-                break
+        comment_selector = self.process_url_request(url=comment_url,try_number=self.try_number,xpath_type=True,encode_type='GBK')
 
         if comment_selector != None:
             doctor_url_list = comment_selector.xpath('//div[@class="dis_List clearfix pr"]/div[2]/div[1]/a/@href')
             comment_doctor_url = ''
             separator = '#####'
             for url in doctor_url_list:
-                comment_doctor_url = comment_doctor_url + url + separator
-            comment_doctor_url = comment_doctor_url[0:len(comment_doctor_url) - len(separator)]
+                if url.replace('/blog', '') not in comment_doctor_url:
+                    comment_doctor_url = comment_doctor_url + url.replace('/blog', '') + separator
+                else:
+                    pass
 
             reply_doctor_url_list = comment_selector.xpath('//div[@class="dis_List clearfix pr"]//div[@class="dis_List clearfix"]/div[2]/div[1]/a[1]/@href')
             # print len(reply_doctor_url_list)
             if len(reply_doctor_url_list) != 0:
                 comment_doctor_url = comment_doctor_url + separator
             for url in reply_doctor_url_list:
-                comment_doctor_url = comment_doctor_url + url + separator
-            comment_doctor_url = comment_doctor_url[0:len(comment_doctor_url) - len(separator)]
+                if url.replace('/blog', '') not in comment_doctor_url:
+                    comment_doctor_url = comment_doctor_url + url.replace('/blog', '') + separator
+                else:
+                    pass
             return {'comment_doctor_url':comment_doctor_url, 'comment_number':comment_page_number['comment_number']}
         else:
+            self.status = False
             return None
 
     def __get_comment__(self):
@@ -175,15 +159,7 @@ class CaseSpider(object):
         :return: 返回一个list，其中每一个元素是一个一级评论，一级评论里面可能有二级评论的内容。
         """
         comment_url = self.__get_comment_page_url__()['comment_page_url']
-        request = urllib2.Request(url = comment_url, headers=self.get_header())
-        comment_selector = None
-        try_index = 0
-        while comment_selector == None:
-            try_index = try_index + 1
-            comment_selector = self.process_request(request=request)
-            if try_index > self.try_number:
-                self.status = False
-                break
+        comment_selector = self.process_url_request(url=comment_url, try_number=self.try_number,wether_decode=True, xpath_type=True,encode_type='GBK')
 
         if comment_selector != None:
             comment_content_list = comment_selector.xpath('//div[@class="dis_List clearfix pr"]')
@@ -195,10 +171,11 @@ class CaseSpider(object):
                 comment = {}
                 comment_first = {}
                 comment_first['post_url'] = self.target_url
+                comment_first['crawl_number'] = self.crawl_number
                 if len(comment_temp.xpath('div[2]/div[1]/a/@href')) == 0:
                     comment_first['doctor_url'] = '匿名用户'
                 else:
-                    comment_first['doctor_url'] = comment_temp.xpath('div[2]/div[1]/a/@href')[0]
+                    comment_first['doctor_url'] = (comment_temp.xpath('div[2]/div[1]/a/@href')[0]).replace('/blog','')
                 comment_first['comment_time'] = comment_temp.xpath('div[2]/div[1]/span/text()')[0]
 
                 # comment_first['comment_content'] = comment_temp.xpath('div[2]/p[@class="mt10"]/text()')[0]
@@ -216,12 +193,13 @@ class CaseSpider(object):
                 for comment_second_temp in comment_second_content:
                     comment_second  ={}
                     comment_second['post_url'] = self.target_url
+                    comment_second['crawl_number'] = self.crawl_number
                     if len(comment_second_temp.xpath('div[2]/div[1]/a/@href')) == 2:
-                        comment_second['reply_to_doctor'] = comment_second_temp.xpath('div[2]/div[1]/a/@href')[1]
-                        comment_second['reply_doctor'] = comment_second_temp.xpath('div[2]/div[1]/a/@href')[0]
+                        comment_second['reply_to_doctor'] = (comment_second_temp.xpath('div[2]/div[1]/a/@href')[1]).replace('/blog','')
+                        comment_second['reply_doctor'] = (comment_second_temp.xpath('div[2]/div[1]/a/@href')[0]).replace('/blog','')
                     elif len(comment_second_temp.xpath('div[2]/div[1]/a/@href')) == 1:
                         comment_second['reply_to_doctor'] = '匿名用户'
-                        comment_second['reply_doctor'] = comment_second_temp.xpath('div[2]/div[1]/a/@href')[0]
+                        comment_second['reply_doctor'] = (comment_second_temp.xpath('div[2]/div[1]/a/@href')[0]).replace('/blog','')
                     elif len(comment_second_temp.xpath('div[2]/div[1]/a/@href')) == 0:
                         comment_second['reply_to_doctor'] = '匿名用户'
                         comment_second['reply_doctor'] = '匿名用户'
@@ -241,17 +219,8 @@ class CaseSpider(object):
 
             return comment_list
         else:
+            self.status = False
             return None
-
-
-
-
-    def get_header(self):
-        """
-        用来随机选择一个User-Agent
-        :return:返回一个header
-        """
-        return {'User-Agent':random.choice(user_agents)}
 
     def __get_comment_page_url__(self):
         """
@@ -263,7 +232,6 @@ class CaseSpider(object):
             comment_number = self.selector.xpath('//div[@class="function_Gn cb"]/div[2]/a[1]/span/text()')[0]
             if comment_number == '评论':
                 comment_number = 0
-                # print comment_number
             else:
                 comment_number = int(self.selector.xpath('//div[@class="function_Gn cb"]/div[2]/a[1]/span/text()')[0])
             page_number = int(math.ceil(float(comment_number) / 10))
@@ -272,47 +240,12 @@ class CaseSpider(object):
         else:
             return None
 
-    def process_request(self, request):
-        """
-        用来处理request的方法，可以判断是否出错。
-        :param request:需要解析的request。
-        :return:返回一个可以用xpath解析信息的selector。
-        """
-        try:
-            response = urllib2.urlopen(request,timeout=100)
-            try:
-                doc = response.read()
-                response.close()
-                doc = doc.decode('GBK', 'ignore')
-                doc = lxml.etree.HTML(doc)
-            except:
-                doc = None
-                print 'return doc:None'
-            return doc
-        # except request.exceptions.Timeout:
-        #     return None
-        except URLError, e:
-            if hasattr(e, 'reason'):
-                print  'We failed to raach a server.'
-                print  'Reaseon: ', e.reason
-            elif hasattr(e, 'code'):
-                print  'The server could not fulfill the request.'
-                print  'Error code: ', e.code
-                print  'Reason: ', e.reason
-            return None
-        except socket.timeout,e:
-            # raise MyException('There was an error: %r' % e)
-            print 'Error code: socket timeout ', e
-            return None
-        except:
-            print 'Do Not know what is wrong.'
-            return None
 
 
 if __name__ == '__main__':
     # spider = CaseSpider('http://club.xywy.com/doctorShare/detail/8332')
-    spider = CaseSpider('http://club.xywy.com/doctorShare/detail/22315')
+    # spider = CaseSpider('http://club.xywy.com/doctorShare/detail/22315')
     # spider = CaseSpider('http://club.xywy.com/doctorShare/detail/52406')
     # spider = CaseSpider('http://club.xywy.com/doctorShare/detail/51393')
-    # spider = CaseSpider('http://club.xywy.com/doctorShare/detail/52772')
-    spider.parse()
+    spider = CaseSpider('http://club.xywy.com/doctorShare/detail/53166')
+    print spider.parse()

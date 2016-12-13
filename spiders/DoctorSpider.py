@@ -26,39 +26,21 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 class DoctorSpider(BaseSpider):
-    def __init__(self,url, try_number = 20):
+    def __init__(self,url, crawl_number, try_number = 20):
         self.target_url = url
         request = urllib2.Request(url=self.target_url, headers=self.get_header())
         self.status = True
         self.try_number = try_number
+        self.crawl_number = crawl_number
         self.selector = None
         self.number_url = 'http://club.xywy.com/doctorShare/index.php?type=share_operation&uid=' + self.target_url.split('/')[4] + '&stat=14'
-        # index = 0
-        # while self.selector == None:
-        #     index = index + 1
-        #     self.selector = self.process_request(request=request)
-        #     if index > self.try_number:
-        #         self.status = False
-        #         break
 
     def get_number(self):
-        request = urllib2.Request(url=self.number_url, headers=self.get_header())
-        doc = None
-        try_index = 0
-        while doc == None:
-            doc = self.process_request_json(request=request)
-            if try_index > self.try_number:
-                self.status = False
-                break
-            else:
-                pass
+        doc = self.process_url_request(self.number_url,xpath_type=False)
         if doc != None:
             doc = json.loads(doc)
             crawl_time = datetime.datetime.now().strftime('%Y-%m-%d')
-            print doc['fansNum']
-            print doc['attenNum']
-            print doc['wbNum']
-            return {'attention_number':str(doc['attenNum']), 'fans_number':str(doc['fansNum']),'web_number':str(doc['wbNum']),'doctor_url':self.target_url, 'crawl_time':crawl_time}
+            return {'attention_number':str(doc['attenNum']), 'fans_number':str(doc['fansNum']),'web_number':str(doc['wbNum']),'doctor_url':self.target_url, 'crawl_time':crawl_time, 'crawl_number':self.crawl_number}
         else:
             return None
 

@@ -16,6 +16,7 @@ class HelpSpider(CaseSpider):
         try:
             post = {}
             post['post_url'] = self.target_url
+            post['crawl_number'] = self.crawl_number
             post['post_title'] = self.selector.xpath('//h2[@class="pr fl  "]/text()')[0]
             mode = re.compile(r'\d+')
             print post['post_url']
@@ -29,7 +30,7 @@ class HelpSpider(CaseSpider):
             if len(self.selector.xpath('//div[@class="tab_Ralax clearfix"]/span/a/@href')) == 0:
                 post['post_doctor_url'] = '匿名用户'
             else:
-                post['post_doctor_url'] = self.selector.xpath('//div[@class="tab_Ralax clearfix"]/span/a/@href')[0]
+                post['post_doctor_url'] = (self.selector.xpath('//div[@class="tab_Ralax clearfix"]/span/a/@href')[0]).replace('/blog','')
             post['post_follower_number'] = self.selector.xpath('//div[@class="for_Health"]/h2/span/text()')[0]
             post['post_type'] = self.selector.xpath('//div[@class="pulished2 w1000 bc clearfix f12 fgray"]/a[2]/text()')[0]
             # post['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -82,7 +83,7 @@ class HelpSpider(CaseSpider):
 
 
 if __name__ == '__main__':
-    help = HelpSpider(url = 'http://club.xywy.com/doctorShare/detail/53693')
+    help = HelpSpider(url = 'http://club.xywy.com/doctorShare/detail/53915')
     post = help.parse()
-    print post
+    # print post
 
