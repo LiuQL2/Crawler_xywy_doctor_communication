@@ -1,16 +1,16 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : Qianlong
+Source Server         : wla-xywy
 Source Server Version : 50716
-Source Host           : localhost:3306
-Source Database       : xywy_communication
+Source Host           : 192.168.139.100:3306
+Source Database       : xywy
 
 Target Server Type    : MYSQL
 Target Server Version : 50716
 File Encoding         : 65001
 
-Date: 2016-12-13 12:12:20
+Date: 2016-12-13 20:21:34
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -33,5 +33,6 @@ CREATE TABLE `help_topic_post` (
   `post_follower_number` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '该帖子的关注人数',
   `post_type` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '帖子类别',
   `crawl_time` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '抓取时间',
-  PRIMARY KEY (`post_url`)
+  `crawl_number` int(11) NOT NULL COMMENT '抓取次数',
+  PRIMARY KEY (`post_url`,`crawl_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
