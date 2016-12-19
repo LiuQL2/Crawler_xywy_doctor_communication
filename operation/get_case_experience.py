@@ -56,17 +56,16 @@ def get_data(crawl_number, data_path, url_file, error_url_file, date_time,post_t
                 print '***第', str(index),'个一级评论已入库'
                 index = index + 1
                 for comment_second in comment['comment_second_list']:
-                    # parent_comment_list = (mysql.select(table=comment_first_table_name, record=comment['comment_first']))
-                    parent_comment_list = []
+                    parent_comment_list = (mysql.select(table=comment_first_table_name, record=comment['comment_first']))
                     if len(parent_comment_list) == 0:
                         print 'Error, not foud parent comment for:', comment_second
                         pass
                     else:
-                        # parent_comment = parent_comment_list[0]
+                        parent_comment = parent_comment_list[0]
                         # comment_second['parent_comment_id'] = parent_comment['comment_id']
-                        comment_second['parent_comment_doctor_url'] = comment['comment_first']['doctor_url']
-                        comment_second['parent_comment_comment_time'] = comment['comment_first']['comment_time']
-                        comment_second['parent_comment_comment_content'] = comment['comment_first']['comment_content']
+                        comment_second['parent_comment_doctor_url'] = parent_comment['doctor_url']
+                        comment_second['parent_comment_comment_time'] = parent_comment['comment_time']
+                        comment_second['parent_comment_comment_content'] = parent_comment['comment_content']
                         mysql.insert(table=comment_second_table_name, record=comment_second)
                         print '***二级评论已入库'
                         pass
@@ -139,10 +138,13 @@ if __name__ == '__main__':
     comment_second_table_name = 'case_experience_comment_second'
     doctor_table_name = 'doctor_communication'
     doctor_url_split = '#####'
-    date_time = '2016-12-13'
+    date_time = '2016-12-15'
     afresh_post_url_file = False
     crawl_number = 1
-    get_data(crawl_number=crawl_number,
+
+
+    from get_help_topic import GetData
+    get_data = GetData(crawl_number=crawl_number,
                    data_path=file_path,
                    url_file=url_file,
                    error_url_file=error_url_file,
@@ -151,6 +153,24 @@ if __name__ == '__main__':
                    comment_first_table_name=comment_first_table_name,
                    comment_second_table_name = comment_second_table_name,
                    doctor_table_name = doctor_table_name,
+                   post_type='case_experience',
                    doctor_url_split = doctor_url_split,
                    afresh_post_url_file = afresh_post_url_file)
-    update_doctor_info('doctor_communication', crawl_number=crawl_number)
+    get_data.get_data()
+    get_data.update_doctor_info()
+    get_data.close_database()
+
+
+    #
+    # get_data(crawl_number=crawl_number,
+    #                data_path=file_path,
+    #                url_file=url_file,
+    #                error_url_file=error_url_file,
+    #                date_time=date_time,
+    #                post_table_name=post_table_name,
+    #                comment_first_table_name=comment_first_table_name,
+    #                comment_second_table_name = comment_second_table_name,
+    #                doctor_table_name = doctor_table_name,
+    #                doctor_url_split = doctor_url_split,
+    #                afresh_post_url_file = afresh_post_url_file)
+    # update_doctor_info('doctor_communication', crawl_number=crawl_number)
