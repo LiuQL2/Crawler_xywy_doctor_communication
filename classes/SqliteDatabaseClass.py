@@ -11,7 +11,7 @@
 
 import sys
 import sqlite3
-from classes.mysqlDatabaseClass import MySQLDatabaseClass
+from classes.MysqlDatabaseClass import MySQLDatabaseClass
 
 reload(sys)
 sys.setdefaultencoding('utf-8')

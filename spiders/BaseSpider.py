@@ -8,15 +8,16 @@
 # Author: Liu Qianlong  <LiuQL2@163.com>
 # Date: 2016.11.06
 
-import csv
-import socket
 import random
+import socket
 import sys
 import urllib2
 from urllib2 import URLError
+
 import lxml.etree
-from settings import USER_AGENTS as user_agents
-import threading
+
+from configuration.settings import USER_AGENTS as user_agents
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -36,13 +37,13 @@ class BaseSpider(object):
         """
         return {'User-Agent':random.choice(user_agents)}
 
-    def process_url_request(self,url,try_number=20, timeout=100,xpath_type=True, wether_decode=False, encode_type='utf-8'):
+    def process_url_request(self,url,try_number=20, timeout=100,xpath_type=True, whether_decode=False, encode_type='utf-8'):
         doc = None
         try_index = 0
         if xpath_type == True:
             while doc == None:
                 request = urllib2.Request(url=url, headers=self.get_header())
-                doc = self.__process_request_xpath__(request=request,timeout=timeout,wether_decode=wether_decode, encode_type=encode_type)
+                doc = self.__process_request_xpath__(request=request,timeout=timeout,wether_decode=whether_decode, encode_type=encode_type)
                 try_index = try_index + 1
                 if try_index > try_number:
                     break

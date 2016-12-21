@@ -8,19 +8,11 @@
 # Date: 2016.12.08
 
 import datetime
-import math
-import random
-import re
-import socket
 import json
 import sys
 import urllib2
-from urllib2 import URLError
+
 from BaseSpider import BaseSpider
-
-import lxml.etree
-
-from settings import USER_AGENTS as user_agents
 
 reload(sys)
 sys.setdefaultencoding('utf-8')

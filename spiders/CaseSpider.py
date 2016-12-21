@@ -31,7 +31,7 @@ class CaseSpider(BaseSpider):
         self.try_number = try_number
         self.crawl_number = crawl_number
         self.timeout = timeout
-        self.selector = self.process_url_request(url=self.target_url, try_number=self.try_number, xpath_type=True,wether_decode=True,encode_type='GBK')
+        self.selector = self.process_url_request(url=self.target_url, try_number=self.try_number, xpath_type=True,whether_decode=True,encode_type='GBK')
         if self.selector == None:
             self.status = False
         else:
@@ -159,7 +159,7 @@ class CaseSpider(BaseSpider):
         :return: 返回一个list，其中每一个元素是一个一级评论，一级评论里面可能有二级评论的内容。
         """
         comment_url = self.__get_comment_page_url__()['comment_page_url']
-        comment_selector = self.process_url_request(url=comment_url, try_number=self.try_number,wether_decode=True, xpath_type=True,encode_type='GBK')
+        comment_selector = self.process_url_request(url=comment_url, try_number=self.try_number,whether_decode=True, xpath_type=True,encode_type='GBK')
 
         if comment_selector != None:
             comment_content_list = comment_selector.xpath('//div[@class="dis_List clearfix pr"]')
