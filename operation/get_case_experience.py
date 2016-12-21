@@ -1,7 +1,7 @@
 # usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from classes.MysqlDatabaseClass import MySQLDatabaseClass
+from database.MysqlDatabaseClass import MySQLDatabaseClass
 from spiders.GetPostUrl import GetPostUrl
 from spiders.CaseSpider import CaseSpider
 from spiders.DoctorSpider import DoctorSpider

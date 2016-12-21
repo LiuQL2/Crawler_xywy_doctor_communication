@@ -1,7 +1,7 @@
 # usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from classes.MysqlDatabaseClass import MySQLDatabaseClass
+from database.MysqlDatabaseClass import MySQLDatabaseClass
 from spiders.GetPostUrl import GetPostUrl
 from spiders.HelpSpider import HelpSpider
 from spiders.DoctorSpider import DoctorSpider
@@ -12,6 +12,9 @@ import csv
 
 
 class GetData(object):
+    """
+    一个类，实现从data里面读取帖子（post）的url，调用spiders里面对应的类进行数据抓取及入库工作。
+    """
     def __init__(self,crawl_number, data_path, url_file, error_url_file, success_url_file,date_time,post_table_name, comment_first_table_name,
                    comment_second_table_name,doctor_table_name,doctor_url_only_table_name,post_type,doctor_url_split,afresh_post_url_file = True):
         self.crawl_number = crawl_number

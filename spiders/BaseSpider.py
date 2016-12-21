@@ -27,6 +27,10 @@ class MyException(Exception):
 
 
 class BaseSpider(object):
+    """
+    基础的爬虫类，实现user_agent的随机选取，从url到request再到需要的网页数据类型，可以转化成使用xpath提取的类型，也可以
+    以string的类型获得网页源码。
+    """
     # def __init__(self):
     #     pass
 
@@ -38,12 +42,22 @@ class BaseSpider(object):
         return {'User-Agent':random.choice(user_agents)}
 
     def process_url_request(self,url,try_number=20, timeout=100,xpath_type=True, whether_decode=False, encode_type='utf-8'):
+        """
+        从一个url，返回该url对应的网页内容，根据需求不同，返回不同数据类型的网页数据。
+        :param url: 目标url
+        :param try_number: 尝试的次数
+        :param timeout: 超时时间。
+        :param xpath_type: 是否转化成可以使用xpath的数据类型。
+        :param whether_decode: 是否需要转换编码。
+        :param encode_type: 如果需要转换编码，则编码格式是什么。
+        :return: 返回对应的数据，多次尝试失败后返回None.
+        """
         doc = None
         try_index = 0
         if xpath_type == True:
             while doc == None:
                 request = urllib2.Request(url=url, headers=self.get_header())
-                doc = self.__process_request_xpath__(request=request,timeout=timeout,wether_decode=whether_decode, encode_type=encode_type)
+                doc = self.__process_request_xpath__(request=request,timeout=timeout,whether_decode=whether_decode, encode_type=encode_type)
                 try_index = try_index + 1
                 if try_index > try_number:
                     break
@@ -61,10 +75,12 @@ class BaseSpider(object):
                     pass
             return doc
 
-    def __process_request_xpath__(self,request,timeout=100, wether_decode=False,encode_type='utf-8'):
+    def __process_request_xpath__(self,request,timeout=100, whether_decode=False,encode_type='utf-8'):
         """
-        处理request请求
+        处理request请求，返回一个可以使用xpath语法的数据类型。
         :param request: 需要处理的request。
+        :param timeout:超时时间
+        :param whether_decode: 是否需要转换编码
         :return:返回一个可以用xpath解析的selector格式。
         """
         try:
@@ -72,7 +88,7 @@ class BaseSpider(object):
             try:
                 doc = response.read()
                 response.close()
-                if wether_decode == True:
+                if whether_decode == True:
                     doc = doc.decode(encode_type, 'ignore')
                 else:
                     pass
@@ -98,6 +114,12 @@ class BaseSpider(object):
             return None
 
     def __process_request__(self,request,timeout = 100):
+        """
+        处理request请求，以string的类型返回网页内容。
+        :param request:request的请求
+        :param timeout:超时时间
+        :return:返回内容，失败返回None
+        """
         try:
             response = urllib2.urlopen(request, timeout=timeout)
             doc = response.read()
