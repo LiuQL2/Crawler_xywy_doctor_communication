@@ -18,7 +18,6 @@ sys.setdefaultencoding('utf-8')
 
 
 class SQLiteDatabaseClass(object):
-
     def __init__(self, file_path):
         """
         初始化一个实例。
@@ -86,7 +85,6 @@ class SQLiteDatabaseClass(object):
         :return: 无返回数据。
         """
         self.__connection.close()
-
 
 
 if __name__ == '__main__':

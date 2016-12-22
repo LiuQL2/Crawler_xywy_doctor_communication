@@ -37,7 +37,6 @@ class MySQLDatabaseClass(object):
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
 
-
     def select(self, table, record = None, database = None):
         """
         在数据库表中进行查询操作,当record为空的时候是查询该表内的所有数据，否则根据record进行有条件查询，当数据库名称为空时，默认为配置文件中的数据库信息。
@@ -73,7 +72,6 @@ class MySQLDatabaseClass(object):
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
             return list()
 
-
     def insert(self, table, record, database = None):
         """
         用于数据库表的插入操作，一次插入一个记录。
@@ -104,7 +102,6 @@ class MySQLDatabaseClass(object):
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
 
-
     def delete(self, table, record,database = None):
         """
         用来删除table表中record数据
@@ -130,7 +127,6 @@ class MySQLDatabaseClass(object):
             cursor.close()
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
-
 
     def update(self,table, record, primary_key, database = None):
         """
@@ -166,14 +162,12 @@ class MySQLDatabaseClass(object):
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" %(e.args[0], e.args[1])
 
-
     def close(self):
         """
         关闭数据库的连接。
         :return: 无返回数据。
         """
         self.__connector.close()
-
 
     def __get_column_name__(self, table, database = None):
         """
@@ -194,8 +188,6 @@ class MySQLDatabaseClass(object):
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
             return tuple()
-
-
 
     def __tuple_to_list__(self, table,database, data_tuple = tuple()):
         """

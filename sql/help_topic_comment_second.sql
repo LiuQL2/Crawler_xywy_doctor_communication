@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50716
 File Encoding         : 65001
 
-Date: 2016-12-13 20:21:27
+Date: 2016-12-22 14:57:11
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -30,5 +30,5 @@ CREATE TABLE `help_topic_comment_second` (
   `reply_content` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '回复的内容',
   `sequence` int(255) NOT NULL COMMENT '在上条评论下回复的顺序',
   `crawl_time` varchar(255) COLLATE utf8_bin NOT NULL COMMENT '抓取时间',
-  `crawler_number` int(11) NOT NULL COMMENT '第几次抓取'
+  `crawl_number` int(11) NOT NULL COMMENT '第几次抓取'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

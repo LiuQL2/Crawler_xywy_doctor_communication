@@ -1,16 +1,16 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : Qianlong
+Source Server         : wla-xywy
 Source Server Version : 50716
-Source Host           : localhost:3306
-Source Database       : xywy_communication
+Source Host           : 192.168.139.100:3306
+Source Database       : xywy
 
 Target Server Type    : MYSQL
 Target Server Version : 50716
 File Encoding         : 65001
 
-Date: 2016-12-21 15:07:38
+Date: 2016-12-22 14:56:54
 */
 
 SET FOREIGN_KEY_CHECKS=0;

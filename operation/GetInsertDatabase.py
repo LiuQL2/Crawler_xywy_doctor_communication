@@ -3,7 +3,6 @@
 
 from database.MysqlDatabaseClass import MySQLDatabaseClass
 from spiders.GetPostUrl import GetPostUrl
-from spiders.HelpSpider import HelpSpider
 from spiders.DoctorSpider import DoctorSpider
 import datetime
 import time
@@ -32,8 +31,12 @@ class GetData(object):
         self.afresh_post_url_file = afresh_post_url_file
         self.doctor_url_only_table_name = doctor_url_only_table_name
         self.mysql = MySQLDatabaseClass()
+        self.error_number = 0
+        self.start_time = 0
+        self.stop_time = 0
 
     def get_data(self):
+        self.start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         while True:
             crawl_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             if self.date_time in crawl_time:
@@ -43,10 +46,12 @@ class GetData(object):
                 print 'waiting', crawl_time
                 pass
 
-        start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if self.afresh_post_url_file == True:
             get_post = GetPostUrl(file_path=self.data_path, case_experience_name=self.url_file, help_topic_name=self.url_file)
-            get_post.get_help_topic_post_url()
+            if self.post_type == 'help_topic':
+                get_post.get_help_topic_post_url()
+            else:
+                get_post.get_case_experience_post_url()
         else:
             pass
 
@@ -58,7 +63,6 @@ class GetData(object):
         success_file = open(self.data_path + self.success_url_file, 'wb')
         success_writer = csv.writer(success_file)
 
-        error_number = 0
         if self.post_type == 'help_topic':
             from spiders.HelpSpider import HelpSpider as PostSpider
         else:
@@ -83,14 +87,12 @@ class GetData(object):
                     print '***第', str(index), '个一级评论已入库'
                     index = index + 1
                     for comment_second in comment['comment_second_list']:
-                        parent_comment_list = (
-                            self.mysql.select(table=self.comment_first_table_name, record=comment['comment_first']))
+                        parent_comment_list = self.mysql.select(table=self.comment_first_table_name, record=comment['comment_first'])
                         if len(parent_comment_list) == 0:
-                            print 'Error, not foud parent comment for:', comment_second
+                            print 'Error, not find parent comment for:', comment_second
                             pass
                         else:
                             parent_comment = parent_comment_list[0]
-                            # comment_second['parent_comment_id'] = parent_comment['comment_id']
                             comment_second['parent_comment_doctor_url'] = parent_comment['doctor_url']
                             comment_second['parent_comment_comment_time'] = parent_comment['comment_time']
                             comment_second['parent_comment_comment_content'] = parent_comment['comment_content']
@@ -107,13 +109,9 @@ class GetData(object):
                 error_writer = csv.writer(file_error)
                 error_writer.writerow(line)
                 file_error.close()
-                error_number = error_number + 1
+                self.error_number = self.error_number + 1
         file.close()
         success_file.close()
-        end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print 'number of error urls:', error_number
-        print 'start time:', start_time
-        print 'end time:', end_time
 
     def get_doctor_info(self,doctor_url_str):
         mysql = MySQLDatabaseClass()
@@ -158,3 +156,9 @@ class GetData(object):
 
     def close_database(self):
         self.mysql.close()
+
+    def process_info(self):
+        self.stop_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print 'start time:', self.start_time
+        print 'stop time:', self.stop_time
+        print 'number of error urls:', self.error_number
