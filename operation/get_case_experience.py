@@ -3,8 +3,9 @@
 
 from GetInsertDatabase import GetData
 
-if __name__ == '__main__':
-    file_path = 'D:/Qianlong/PyCharmProjects/Crawler_xywy_doctor_communication/data/'
+
+def main():
+    file_path = 'D:/Workspace/PyCharmProjects/Crawler_xywy_doctor_communication/data/'
     url_file = 'case_experience_url.csv'
     error_url_file = 'case_experience_url_error.csv'
     sucess_url_file = 'case_experience_url_sucess.csv'
@@ -14,9 +15,9 @@ if __name__ == '__main__':
     doctor_table_name = 'doctor_communication'
     doctor_url_only_table_name = 'doctor_url'
     doctor_url_split = '#####'
-    date_time = '2016-12-22'
+    date_time = '2017-02-21'
     afresh_post_url_file = True
-    crawl_number = 1
+    crawl_number = 5
     post_type = 'case_experience'
 
     get_data = GetData(crawl_number=crawl_number,
@@ -37,3 +38,5 @@ if __name__ == '__main__':
     get_data.update_doctor_info()
     get_data.close_database()
     get_data.process_info()
+
+main()
