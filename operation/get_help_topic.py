@@ -15,8 +15,8 @@ def main():
     doctor_url_only_table_name = 'doctor_url'
     doctor_url_split = '#####'
     afresh_post_url_file = True
-    date_time = '2017-02-21'
-    crawl_number = 5
+    date_time = '2017-02-26'
+    crawl_number = 6
     post_type = 'help_topic'
 
     get_data = GetData(crawl_number=crawl_number,
