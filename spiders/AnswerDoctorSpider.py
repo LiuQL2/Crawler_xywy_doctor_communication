@@ -67,14 +67,19 @@ class Doctor(BaseSpider):
             doctor['name'] = profile_list[0]
             doctor['title'] = profile_list[1]
             doctor['department'] = profile_list[2]
-            doctor['grade'] = sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[1]/span/text()')[0]
-            doctor['best_reply'] = mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[2]/span/text()')[0])[0]
-            doctor['help_user'] = mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[3]/span/text()')[0])[0]
-            reputation_content = sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[4]/cite/img/@src')
-            doctor['reputation_type'] = reputation_content[0].split('ysmp/')[1].replace('.gif','')
-            doctor['reputation'] = len(reputation_content)
-            doctor['gratitude_user'] = mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[5]/span/text()')[0])[0]
-            doctor['fan'] = mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[6]/span/text()')[0])[0]
+            if len(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li/span/text()')) == 5:
+                doctor['grade'] = sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[1]/span/text()')[0]
+                doctor['best_reply'] = mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[2]/span/text()')[0])[0]
+                doctor['help_user'] = mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[3]/span/text()')[0])[0]
+                doctor['gratitude_user'] = \
+                mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[5]/span/text()')[0])[0]
+                doctor['fan'] = \
+                mode.findall(sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[6]/span/text()')[0])[0]
+                reputation_content = sel.xpath('//ul[@class="bdxli pt10 f12 clearfix black"]/li[4]/cite/img/@src')
+                doctor['reputation_type'] = reputation_content[0].split('ysmp/')[1].replace('.gif','')
+                doctor['reputation'] = len(reputation_content)
+            else:
+                pass
             doctor['skill'] = sel.xpath('//div[@class="clearfix cl djzhan f12 mr10 pt10 pb10 none"]/p/text()')[0].replace('擅长疾病：','')
             doctor['hospital'] = sel.xpath('//div[@class="clearfix cl djzhan f12 mr10 pt10 pb10 none"]/p/text()')[1].replace('所在医院：','')
             doctor['introduce'] = sel.xpath('//div[@class="clearfix cl djzhan f12 mr10 pt10 pb10 none"]/div/text()')[0].replace('个人简介：','')
@@ -105,7 +110,11 @@ class Doctor(BaseSpider):
                 doctor['hospital'] = sel.xpath('//div[@class=" lh200 pt10 f14"]/text()')[1].split('-')[0]
                 doctor['department'] = sel.xpath('//div[@class=" lh200 pt10 f14"]/text()')[1].split('-')[1]
                 doctor['skill'] = sel.xpath('//div[@class="clearfix"]/div[1][@class="HomeJie f14 fwei pt20"]/div/text()')[0]
-                doctor['introduce'] = sel.xpath('//div[@class="clearfix"]/div[2][@class="HomeJie f14 fwei pt20"]/div/text()')[0]
+                introduce = sel.xpath('//div[@class="clearfix"]/div[2][@class="HomeJie f14 fwei pt20"]/div/text()')
+                if len(introduce) != 0:
+                    doctor['introduce'] = introduce[0]
+                else:
+                    pass
                 doctor['reputation'] = sel.xpath('//div[@class="clearfix mt20"]/span/text()')[0]
                 help_content = sel.xpath('//div[@class="f14 fwei HomeHelp tc lh200 clearfix pt10"]/span/text()')
                 if len(help_content) == 2:
@@ -163,7 +172,7 @@ class Doctor(BaseSpider):
 
 
 if __name__ == '__main__':
-    get_doctor = GetAnswerDoctor(url_table='2016_doctor_url', answer_doctor_table='2016_doctor_info_answer',
+    get_doctor = GetAnswerDoctor(url_table='2016_doctor_url_dynamic', answer_doctor_table='2016_doctor_info_answer',
                                  family_doctor_table='2016_doctor_info_family', zhuanjia_doctor_table='2016_doctor_info_zhuanjia')
     get_doctor.get_url()
     get_doctor.get_doctor_info()
