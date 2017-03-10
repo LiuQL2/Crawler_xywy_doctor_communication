@@ -7,9 +7,9 @@
 # 数据库信息配置，这里用于连接数据库，各个属性是否必需如下
 DATABASE_INFO = dict(
     host='localhost',#数据库所在主机，必需
-    user='Qianlong',#用户名，必需
+    user='qianlong',#用户名，必需
     passwd='962182',#用户密码，必需
-    database='xywy_communication',#数据库名称，必需
+    database='graduation',#数据库名称，必需
     port=3306,#端口号，必需
     charset='utf8',#数据库编码方式，必需
     use_unicode = True,

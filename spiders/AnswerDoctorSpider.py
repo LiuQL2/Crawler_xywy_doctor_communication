@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 """
-用来获取有问必答页面回答问题医生的信息。
+用来获取有问必答页面回答问题医生的信息。该板块医生分为三种类型，所以这里根据医生的网址形式进行分别处理。
 """
 
 import datetime
@@ -40,10 +40,11 @@ class GetAnswerDoctor(object):
                 doctor.get_family_doctor()
                 pass
             elif 'doc_card' in doctor_url:
-                doctor.get_answer_doctor()
+                # doctor.get_answer_doctor()
                 pass
             elif 'z.xywy.com/doc' in doctor_url:
-                doctor.get_zhuanjia_doctor()
+                # doctor.get_zhuanjia_doctor()
+                pass
 
 
 class Doctor(BaseSpider):
@@ -172,7 +173,7 @@ class Doctor(BaseSpider):
 
 
 if __name__ == '__main__':
-    get_doctor = GetAnswerDoctor(url_table='2016_doctor_url_dynamic', answer_doctor_table='2016_doctor_info_answer',
+    get_doctor = GetAnswerDoctor(url_table='2016_doctor_url', answer_doctor_table='2016_doctor_info_answer',
                                  family_doctor_table='2016_doctor_info_family', zhuanjia_doctor_table='2016_doctor_info_zhuanjia')
     get_doctor.get_url()
     get_doctor.get_doctor_info()
