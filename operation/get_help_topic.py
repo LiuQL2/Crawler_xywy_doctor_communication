@@ -4,7 +4,7 @@
 from GetInsertDatabase import GetData
 
 def main():
-    file_path = 'D:/Workspace/PyCharmProjects/Crawler_xywy_doctor_communication/data/'
+    file_path = './../data/'
     url_file = 'help_topic_url.csv'
     error_url_file = 'help_topic_url_error.csv'
     sucess_url_file = 'help_topic_url_sucess.csv'
