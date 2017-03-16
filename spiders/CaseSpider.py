@@ -15,6 +15,7 @@ import sys
 import urllib2
 from urllib2 import URLError
 from BaseSpider import BaseSpider
+import traceback
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -95,8 +96,9 @@ class CaseSpider(BaseSpider):
                 return post
             else:
                 return None
-        except:
+        except Exception, e:
             self.status = False
+            print traceback.format_exc(), e.message
             return None
 
 
@@ -114,7 +116,8 @@ class CaseSpider(BaseSpider):
                 for url in doctor_url_list:
                     temp = temp + url.replace('/blog', '') + separator
                 return temp[0:len(temp)]
-            except:
+            except Exception,e:
+                print traceback.format_exc(), e.message
                 self.status = False
                 return None
         else:

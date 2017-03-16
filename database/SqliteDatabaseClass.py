@@ -32,7 +32,11 @@ class SQLiteDatabaseClass(object):
         连接sqlite数据库文件。
         :return: 不返回数据。
         """
-        self.__connection = sqlite3.connect(database=self.file_path)
+        try:
+            self.__connection = sqlite3.connect(database=self.file_path)
+        except Exception, e:
+            print traceback.format_exc(), e.message
+            sys.exit(status=e.message)
 
     def insert(self, table, record):
         """
@@ -41,18 +45,19 @@ class SQLiteDatabaseClass(object):
         :param record:需要插入的数据，一个记录，必须为字典，key为数据库表列名。
         :return:Nothing to return.
         """
+
+        sql1 = 'insert into ' + table + ' ('
+        sql2 = 'values ('
+        values = []
+        for (key, value) in record.items():
+            sql1 = sql1 + key + ','
+            sql2 = sql2 + "'%s',"
+            values.append(value)
+        sql1 = sql1[0:len(sql1) - 1] + ') '
+        sql2 = sql2[0:len(sql2) - 1] + ') '
+        sql = sql1 + sql2
+        sql = sql % tuple(values)
         try:
-            sql1 = 'insert into ' + table + ' ('
-            sql2 = 'values ('
-            values = []
-            for (key, value) in record.items():
-                sql1 = sql1 + key + ','
-                sql2 = sql2 + "'%s',"
-                values.append(value)
-            sql1 = sql1[0:len(sql1) - 1] + ') '
-            sql2 = sql2[0:len(sql2) - 1] + ') '
-            sql = sql1 + sql2
-            sql = sql % tuple(values)
             self.__cursor = self.__connection.cursor()
             self.__cursor.execute(sql)
             self.__connection.commit()
@@ -118,14 +123,18 @@ class SQLiteDatabaseClass(object):
         :param size: 需要返回数据的数量，100表示返回100条记录，可以为空，表示返回表table中的全部数据。
         :return: 返回查询数据的结果。
         """
-        self.__cursor = self.__connection.cursor()
-        self.__cursor.execute('select * from '+ table + ';')
-        if size == None:
-            data_tuple = self.__cursor.fetchall()
-        else:
-            data_tuple = self.__cursor.fetchmany(size=size)
-        self.__cursor.close()
-        return self.__tuple_to_dict__(data_tuple, table= table)
+        try:
+            self.__cursor = self.__connection.cursor()
+            self.__cursor.execute('select * from '+ table + ';')
+            if size == None:
+                data_tuple = self.__cursor.fetchall()
+            else:
+                data_tuple = self.__cursor.fetchmany(size=size)
+            self.__cursor.close()
+            return self.__tuple_to_dict__(data_tuple, table= table)
+        except Exception, e:
+            print traceback.format_exc(), e.message
+            return list()
 
     def create_table(self, table_name, column_names, column_types, not_null = [],primary_key=[]):
         """
@@ -166,11 +175,15 @@ class SQLiteDatabaseClass(object):
         :param table: 需要查询的表，不能为空。
         :return: 返回表的结构。
         """
-        self.__cursor = self.__connection.cursor()
-        self.__cursor.execute('PRAGMA table_info('+ table +');')
-        info = self.__cursor.fetchall()
-        self.__cursor.close()
-        return info
+        try:
+            self.__cursor = self.__connection.cursor()
+            self.__cursor.execute('PRAGMA table_info('+ table +');')
+            info = self.__cursor.fetchall()
+            self.__cursor.close()
+            return info
+        except Exception, e:
+            print traceback.format_exc(), e.message
+            return None
 
     def table_column(self, table):
         table_info = self.table_info(table = table)

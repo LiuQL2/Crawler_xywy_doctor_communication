@@ -11,6 +11,7 @@
 
 import _mysql_exceptions as ___mysql_exceptions
 import MySQLdb
+import traceback
 import os
 import sys
 from configuration.parameters import DATABASE_INFO as database_info
@@ -36,6 +37,9 @@ class MySQLDatabaseClass(object):
             self.__connector = conn
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+            sys.exit(e.message)
+        except Exception, e:
+            print traceback.format_exc(), e.message
 
     def select(self, table, record = None, database = None):
         """
@@ -71,6 +75,9 @@ class MySQLDatabaseClass(object):
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
             return list()
+        except Exception, e:
+            print traceback.format_exc(), e.message
+            return list()
 
     def insert(self, table, record, database = None):
         """
@@ -101,6 +108,8 @@ class MySQLDatabaseClass(object):
             cursor.close()
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+        except Exception, e:
+            print traceback.format_exc(), e.message
 
     def delete(self, table, record,database = None):
         """
@@ -127,6 +136,8 @@ class MySQLDatabaseClass(object):
             cursor.close()
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+        except Exception, e:
+            print traceback.format_exc(), e.message
 
     def update(self,table, record, primary_key, database = None):
         """
@@ -161,6 +172,8 @@ class MySQLDatabaseClass(object):
             cursor.close()
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" %(e.args[0], e.args[1])
+        except Exception, e:
+            print traceback.format_exc(), e.message
 
     def close(self):
         """
@@ -187,6 +200,9 @@ class MySQLDatabaseClass(object):
             return data_tuple
         except MySQLdb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+            return tuple()
+        except Exception, e:
+            print traceback.format_exc(), e.message
             return tuple()
 
     def __tuple_to_list__(self, table,database, data_tuple = tuple()):

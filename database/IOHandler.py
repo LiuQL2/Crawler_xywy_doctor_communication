@@ -23,6 +23,6 @@ class FileIO(object):
         file.close()
 
     @staticmethod
-    def exceptionHandler(message, url):
+    def exceptionHandler(message, url=''):
         FileIO.writeToFile(text='[' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ']: ' + url + '\n'
                              + message, filename='./../logs/error_log.log')

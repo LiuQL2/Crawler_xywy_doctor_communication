@@ -6,6 +6,7 @@ import re
 import sys
 import datetime
 import math
+import traceback
 import urllib2
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -56,7 +57,8 @@ class HelpSpider(CaseSpider):
                 return post
             else:
                 return None
-        except:
+        except Exception, e:
+            print traceback.format_exc(), e.message
             self.status = False
             return None
 
