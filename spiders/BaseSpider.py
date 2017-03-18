@@ -104,12 +104,12 @@ class BaseSpider(object):
                 print  'The server could not fulfill the request.'
                 print  'Error code: ', e.code
                 print  'Reason: ', e.reason
-            FileIO.exceptionHandler(message= 'message:' + e.message + '; reason:' + e.reason + '; code:' + str(e.code))
+            FileIO.exceptionHandler(message= e.message)
             print traceback.format_exc(), e.message
             return None
         except socket.timeout,e:
             print 'Error code: socket timeout', e
-            FileIO.exceptionHandler(message= 'message:' + e.message)
+            FileIO.exceptionHandler(message= e.message)
             print traceback.format_exc(), e.message
             return None
         except Exception, e:
@@ -137,7 +137,7 @@ class BaseSpider(object):
                 print  'The server could not fulfill the request.'
                 print  'Error code: ', e.code
                 print  'Reason: ', e.reason
-            FileIO.exceptionHandler(message= 'message:' + e.message + '; reason:' + e.reason + '; code:' + str(e.code))
+            FileIO.exceptionHandler(message= e.message)
             print traceback.format_exc(), e.message
             return None
         except socket.timeout,e:
