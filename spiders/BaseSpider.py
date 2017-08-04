@@ -19,6 +19,7 @@ import lxml.etree
 
 from configuration.settings import USER_AGENTS as user_agents
 from database.IOHandler import FileIO
+from configuration.settings import PROXIES as proxies
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -39,7 +40,14 @@ class BaseSpider(object):
         """
         return {'User-Agent':random.choice(user_agents)}
 
-    def process_url_request(self,url,try_number=20, timeout=100,xpath_type=True, whether_decode=False, encode_type='utf-8'):
+    def set_proxy(self):
+        proxy_temp = {'http': random.choice(proxies)}
+        proxy_handler = urllib2.ProxyHandler(proxy_temp)
+        opener = urllib2.build_opener(proxy_handler)
+        urllib2.install_opener(opener=opener)
+        print '*********',proxy_temp
+
+    def process_url_request(self,url,try_number=20, timeout=100,xpath_type=True, whether_decode=False, encode_type='utf-8',use_proxy=False):
         """
         从一个url，返回该url对应的网页内容，根据需求不同，返回不同数据类型的网页数据。
         :param url: 目标url
@@ -48,12 +56,17 @@ class BaseSpider(object):
         :param xpath_type: 是否转化成可以使用xpath的数据类型。
         :param whether_decode: 是否需要转换编码。
         :param encode_type: 如果需要转换编码，则编码格式是什么。
+        :param use_proxy: 是否使用代理服务器，boolean
         :return: 返回对应的数据，多次尝试失败后返回None.
         """
         doc = None
         try_index = 0
         if xpath_type == True:
             while doc == None:
+                if use_proxy == True:
+                    self.set_proxy()
+                else:
+                    pass
                 request = urllib2.Request(url=url, headers=self.get_header())
                 doc = self.__process_request_xpath__(request=request,timeout=timeout,whether_decode=whether_decode, encode_type=encode_type)
                 try_index = try_index + 1

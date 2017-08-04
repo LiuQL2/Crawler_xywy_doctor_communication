@@ -1,130 +1,48 @@
 # usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 from database.MysqlDatabaseClass import MySQLDatabaseClass
-from spiders.GetPostUrl import GetPostUrl
 from spiders.DoctorSpider import DoctorSpider
+from configuration.settings import TABLE_INFO as table_info
+from configuration.settings import CRAWL_NUMBER as crawl_number
 import datetime
-import time
-import csv
 
 
-
-class GetData(object):
-    """
-    一个类，实现从data里面读取帖子（post）的url，调用spiders里面对应的类进行数据抓取及入库工作。
-    """
-    def __init__(self,crawl_number, data_path, url_file, error_url_file, success_url_file,date_time,post_table_name, comment_first_table_name,
-                   comment_second_table_name,doctor_table_name,doctor_url_only_table_name,post_type,doctor_url_split,afresh_post_url_file = True):
-        self.crawl_number = crawl_number
-        self.data_path = data_path
-        self.url_file = url_file
-        self.error_url_file = error_url_file
-        self.success_url_file = success_url_file
-        self.date_time = date_time
-        self.post_table_name = post_table_name
-        self.comment_first_table_name = comment_first_table_name
-        self.comment_second_table_name = comment_second_table_name
-        self.doctor_table_name = doctor_table_name
-        self.doctor_url_split = doctor_url_split
-        self.post_type = post_type
-        self.afresh_post_url_file = afresh_post_url_file
-        self.doctor_url_only_table_name = doctor_url_only_table_name
+class InsertDatabase(object):
+    def __init__(self, message, doctor_url_split, crawl_number):
+        self.type = message['type']
+        self.post_comment = json.loads(message['content'])
         self.mysql = MySQLDatabaseClass()
-        self.error_number = 0
-        self.start_time = 0
-        self.stop_time = 0
+        self.doctor_url_split = doctor_url_split
+        self.crawl_number = crawl_number
 
-    def get_data(self):
-        self.start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        while True:
-            crawl_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            if self.date_time in crawl_time:
-                break
-            else:
-                time.sleep(1)
-                print 'waiting', crawl_time
-                pass
-
-        if self.afresh_post_url_file == True:
-            get_post = GetPostUrl(file_path=self.data_path, case_experience_name=self.url_file, help_topic_name=self.url_file)
-            if self.post_type == 'help_topic':
-                get_post.get_help_topic_post_url()
-            else:
-                get_post.get_case_experience_post_url()
-        else:
-            pass
-
-        file = open(self.data_path + self.url_file, 'r')
-        reader = csv.reader(file)
-        file_error = open(self.data_path + self.error_url_file, 'wb')
-        file_error.close()
-
-        success_file = open(self.data_path + self.success_url_file, 'wb')
-        success_writer = csv.writer(success_file)
-
-        if self.post_type == 'help_topic':
-            from spiders.HelpSpider import HelpSpider as PostSpider
-        else:
-            from spiders.CaseSpider import CaseSpider as PostSpider
-        for line in reader:
-            if len(line) != 0:
-                print line[
-                    0], '********************************************************************************************************************************************'
-                spider = PostSpider(line[0], crawl_number=self.crawl_number)
-                post_comment = spider.parse()
-            else:
-                post_comment = False
-
-            if post_comment != False:
-                post = post_comment['post']
-                comment_list = post_comment['comment_list']
-                self.mysql.insert(table=self.post_table_name, record=post)
-                print '***帖子信息已入库'
-                index = 1
-                for comment in comment_list:
-                    self.mysql.insert(table=self.comment_first_table_name, record=comment['comment_first'])
-                    print '***第', str(index), '个一级评论已入库'
-                    index = index + 1
-                    for comment_second in comment['comment_second_list']:
-                        parent_comment_list = self.mysql.select(table=self.comment_first_table_name, record=comment['comment_first'])
-                        if len(parent_comment_list) == 0:
-                            print 'Error, not find parent comment for:', comment_second
-                            pass
-                        else:
-                            parent_comment = parent_comment_list[0]
-                            comment_second['parent_comment_doctor_url'] = parent_comment['doctor_url']
-                            comment_second['parent_comment_comment_time'] = parent_comment['comment_time']
-                            comment_second['parent_comment_comment_content'] = parent_comment['comment_content']
-                            self.mysql.insert(table=self.comment_second_table_name, record=comment_second)
-                            print '***二级评论已入库'
-                            pass
-                self.insert_doctor_url(doctor_url_list=post['post_like_doctor_url'],  split=True)
-                self.insert_doctor_url(doctor_url_list=post['post_comment_doctor_url'],split=True)
-                self.insert_doctor_url(doctor_url_list=[post['post_doctor_url']])
-                success_writer.writerow(line)
-            else:
-                print '#### Error!!'
-                file_error = open(self.data_path + self.error_url_file, 'a')
-                error_writer = csv.writer(file_error)
-                error_writer.writerow(line)
-                file_error.close()
-                self.error_number = self.error_number + 1
-        file.close()
-        success_file.close()
-
-    def get_doctor_info(self,doctor_url_str):
-        mysql = MySQLDatabaseClass()
-        doctor_url_list = doctor_url_str.split(self.doctor_url_split)
-        for url in doctor_url_list:
-            if 'club.xywy.com/doc_card' in url:
-                doctor = DoctorSpider(url=url, crawl_number=self.crawl_number)
-                doctor_info = doctor.get_number()
-                if doctor_info != None:
-                    mysql.insert(table=self.doctor_table_name, record=doctor_info)
-                    print '医生信息已入库', url
-                else:
+    def process(self):
+        post = self.post_comment['post']
+        comment_list = self.post_comment['comment_list']
+        self.mysql.insert(table=table_info[self.type]['post'], record=post)
+        print '***帖子信息已入库'
+        index = 1
+        for comment in comment_list:
+            self.mysql.insert(table=table_info[self.type]['comment_first'], record=comment['comment_first'])
+            print '***第', str(index), '个一级评论已入库'
+            index = index + 1
+            for comment_second in comment['comment_second_list']:
+                parent_comment_list = self.mysql.select(table=table_info[self.type]['comment_first'], record=comment['comment_first'])
+                if len(parent_comment_list) == 0:
+                    print 'Error, not find parent comment for:', comment_second
                     pass
+                else:
+                    parent_comment = parent_comment_list[0]
+                    comment_second['parent_comment_doctor_url'] = parent_comment['doctor_url']
+                    comment_second['parent_comment_comment_time'] = parent_comment['comment_time']
+                    comment_second['parent_comment_comment_content'] = parent_comment['comment_content']
+                    self.mysql.insert(table=table_info[self.type]['comment_second'], record=comment_second)
+                    print '***二级评论已入库'
+                    pass
+        self.insert_doctor_url(doctor_url_list=post['post_like_doctor_url'],  split=True)
+        self.insert_doctor_url(doctor_url_list=post['post_comment_doctor_url'],split=True)
+        self.insert_doctor_url(doctor_url_list=[post['post_doctor_url']])
 
     def insert_doctor_url(self,doctor_url_list, split=False):
         if split == True:
@@ -137,28 +55,29 @@ class GetData(object):
                 doctor_info['doctor_url'] = url
                 doctor_info['crawl_number'] = self.crawl_number
                 print doctor_info
-                self.mysql.insert(table=self.doctor_table_name, record=doctor_info)
+                self.mysql.insert(table=table_info['doctor_communication'], record=doctor_info)
                 doctor_info['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d')
-                self.mysql.insert(table=self.doctor_url_only_table_name, record=doctor_info)
+                self.mysql.insert(table=table_info['doctor_url'], record=doctor_info)
 
-    def update_doctor_info(self):
-        doctor_dict_list = self.mysql.select(table=self.doctor_table_name, record={'crawl_number': self.crawl_number})
+    @staticmethod
+    def update_doctor_info():
+        """
+        跟新这次抓取的医生信息
+        :return:
+        """
+        mysql = MySQLDatabaseClass()
+        doctor_dict_list = mysql.select(table=table_info['doctor_communication'], record={'crawl_number': crawl_number})
         for doctor_dict in doctor_dict_list:
             url = doctor_dict['doctor_url']
-            doctor = DoctorSpider(url=url, crawl_number=self.crawl_number)
+            doctor = DoctorSpider(url=url, crawl_number=crawl_number)
             doctor_info = doctor.get_number()
             if doctor_info != None:
-                self.mysql.update(table=self.doctor_table_name, record=doctor_info,
+                mysql.update(table=table_info['doctor_communication'], record=doctor_info,
                              primary_key={'doctor_url': url, 'crawl_number': doctor_dict['crawl_number']})
                 print '医生信息已入库', url
             else:
                 pass
+        mysql.close()
 
-    def close_database(self):
+    def close(self):
         self.mysql.close()
-
-    def process_info(self):
-        self.stop_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print 'start time:', self.start_time
-        print 'stop time:', self.stop_time
-        print 'number of error urls:', self.error_number

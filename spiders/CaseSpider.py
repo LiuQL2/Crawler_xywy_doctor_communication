@@ -9,11 +9,10 @@
 
 import datetime
 import math
-import random
 import re
 import sys
-import urllib2
-from urllib2 import URLError
+
+from configuration.settings import USE_PROXY as use_proxy
 from BaseSpider import BaseSpider
 import traceback
 
@@ -32,7 +31,7 @@ class CaseSpider(BaseSpider):
         self.try_number = try_number
         self.crawl_number = crawl_number
         self.timeout = timeout
-        self.selector = self.process_url_request(url=self.target_url, try_number=self.try_number, xpath_type=True,whether_decode=True,encode_type='GBK')
+        self.selector = self.process_url_request(url=self.target_url, try_number=self.try_number, xpath_type=True,whether_decode=True,encode_type='GBK',use_proxy=use_proxy)
         if self.selector == None:
             self.status = False
         else:
@@ -55,7 +54,7 @@ class CaseSpider(BaseSpider):
         if self.status == True:
             return {'post':post, 'comment_list':comment_list}
         else:
-            return False
+            return None
 
     def __get_post_info__(self):
         """
@@ -130,7 +129,7 @@ class CaseSpider(BaseSpider):
         """
         comment_page_number = self.__get_comment_page_url__()
         comment_url = comment_page_number['comment_page_url']
-        comment_selector = self.process_url_request(url=comment_url,try_number=self.try_number,xpath_type=True,encode_type='GBK')
+        comment_selector = self.process_url_request(url=comment_url,try_number=self.try_number,xpath_type=True,encode_type='GBK',use_proxy=use_proxy)
 
         if comment_selector != None:
             doctor_url_list = comment_selector.xpath('//div[@class="dis_List clearfix pr"]/div[2]/div[1]/a/@href')
@@ -162,7 +161,7 @@ class CaseSpider(BaseSpider):
         :return: 返回一个list，其中每一个元素是一个一级评论，一级评论里面可能有二级评论的内容。
         """
         comment_url = self.__get_comment_page_url__()['comment_page_url']
-        comment_selector = self.process_url_request(url=comment_url, try_number=self.try_number,whether_decode=True, xpath_type=True,encode_type='GBK')
+        comment_selector = self.process_url_request(url=comment_url, try_number=self.try_number,whether_decode=True, xpath_type=True,encode_type='GBK',use_proxy=use_proxy)
 
         if comment_selector != None:
             comment_content_list = comment_selector.xpath('//div[@class="dis_List clearfix pr"]')

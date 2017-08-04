@@ -87,5 +87,4 @@ class HelpSpider(CaseSpider):
 if __name__ == '__main__':
     help = HelpSpider(url = 'http://club.xywy.com/doctorShare/detail/53915')
     post = help.parse()
-    # print post
 
